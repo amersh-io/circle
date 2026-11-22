@@ -6,7 +6,8 @@ An agent that lives in a Common Lisp image, powered by Claude through
 Claude Code. Not affiliated with Anthropic.
 
 > Status: early. The engine runs: a Lisp image talks to Claude, and Claude
-> evaluates Lisp in that image. Generations and the interface come next.
+> evaluates Lisp in that image. Changes it keeps become generations a
+> supervisor starts again. The interface comes next.
 
 ## The idea
 
@@ -20,9 +21,11 @@ supervisor — without stopping the conversation.
   a protocol, so another loop can take its place later.
 - **Body.** The image hands the engine its tools, first among them `eval` in
   the running image.
-- **Generations.** When a change passes a replay check, a forked child saves
-  the image with `save-lisp-and-die`. A thin supervisor starts the last good
-  generation again and resumes the same conversation.
+- **Generations.** Changes the model keeps are replayed in a fresh process
+  started from the image's generation; if they and their checks pass, that
+  process saves itself with `save-lisp-and-die` as the next generation. A
+  thin supervisor starts the newest good generation and resumes the same
+  conversation.
 - **Interface.** Windows live in a separate shell process built on
   [cl-proteus](https://github.com/amersh-io/cl-proteus); the image holds no
   Cocoa state and sends its views and commands over a socket, so saving a
@@ -83,14 +86,47 @@ scripts/bootstrap                 # SBCL 2.6.9 and qlot under .local/
 
 `examples/hello.lisp` asks one question and prints the answer.
 
+## Generations
+
+```lisp
+(circle:make-first-generation
+ :directory (merge-pathnames "agents/notes/" (user-homedir-pathname)) ; else circle/ under ~/.local/share
+ :system "my-agent"                       ; your agent's own code, if any
+ :engine-options '(:model "claude-opus-5-5" :effort "high"))
+```
+
+```sh
+scripts/circle ~/agents/notes/            # start the newest good generation, keep one running
+```
+
+The agent answers each line you type. The model keeps a change by calling
+`eval` with `keep` set to true, and freezes the kept changes with its
+`freeze_generation` tool:
+
+- A fresh process started from the current generation replays the kept
+  changes and runs every check noted with `note-check`; only if all pass does
+  it save itself as the next generation. What a generation holds is what its
+  replay made, not the running image's other state.
+- `:restart` ends the image so the supervisor starts the newest generation;
+  `:freeze` freezes from the keyboard; the end of input ends both.
+- The supervisor runs from source, never from a generation. A generation that
+  fails to start is marked and the one before it starts; one that crashes is
+  started again after a pause. Each resumes the same conversation.
+
+[docs/generations.md](docs/generations.md) says what a replay checks and why
+the running image is not forked; [spec/](spec) models the freeze and the
+supervisor in Quint. `examples/generations.lisp` builds generation 0 and runs
+it once.
+
 ## Tests
 
 `scripts/test` runs the suite against a stand-in CLI (`test/fake-claude.lisp`)
 that speaks the same protocol, so it needs no model. `CIRCLE_TEST_CLAUDE=1`
 adds checks against the real CLI (`CIRCLE_TEST_MODEL` and `CIRCLE_TEST_EFFORT`, `claude-opus-5-5` and `high`
 by default):
-one turn, a turn that calls `eval`, a tool defined mid-conversation, and a
-resumed conversation.
+one turn, a turn that calls `eval`, a tool defined mid-conversation, a
+resumed conversation, and a generation the model freezes and the supervisor
+starts. `scripts/check-spec` runs the Quint model's tests.
 
 ## License
 

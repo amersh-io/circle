@@ -26,8 +26,25 @@ change the API.
 - `eval`: reads forms with `*read-eval*` false, evaluates them in the image,
   and answers their output and values, or the error and its backtrace.
 
+### Generations
+
+- Changes the image keeps: `eval` with `keep`, `note-change`, and checks
+  that must hold, `note-check`.
+- `freeze-generation` and the model's `freeze_generation` tool: the kept
+  changes are replayed in a fresh process started from the image's
+  generation, every check runs, and only then does that process save itself
+  as the next generation; image and manifest are put in place by rename,
+  the manifest last.
+- `make-first-generation` builds generation 0 from source with the engine's
+  options; every generation resumes the conversation its directory records.
+- `scripts/circle`, the supervisor: starts the newest generation that can be
+  started, marks one that fails to start and falls back to the one before,
+  starts one that crashes again after a doubling pause, and starts the
+  newest at once on `:restart`.
+- The freeze and the supervisor modelled in Quint (`spec/`), with a CI job.
+
 ### Around the code
 
 - A stand-in CLI for the tests, and opt-in checks against the real one.
-- `examples/hello.lisp`, run by the suite.
+- `examples/hello.lisp` and `examples/generations.lisp`, run by the suite.
 - CI on Ubuntu and macOS.
