@@ -1,0 +1,21 @@
+#!/bin/sh
+# Start the newest generation that can be started and keep one running,
+# with the toolchain installed by scripts/bootstrap:
+#
+#   scripts/circle [DIRECTORY] [-- ARGUMENTS FOR EACH GENERATION]
+#
+# DIRECTORY holds the generations (circle/ under $XDG_DATA_HOME, else
+# ~/.local/share, if not given); build generation 0 there first with
+# circle:make-first-generation. The supervisor runs from this checkout's
+# source, never from a generation.
+set -eu
+
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+export PATH="$ROOT/.local/bin:$PATH"
+
+exec sbcl --noinform --non-interactive --no-userinit \
+  --load "$ROOT/.qlot/setup.lisp" \
+  --eval "(asdf:load-asd (truename \"$ROOT/circle.asd\"))" \
+  --eval '(asdf:load-system "circle/supervisor")' \
+  --eval '(sb-ext:exit :code (circle/supervisor::command-line (rest sb-ext:*posix-argv*)))' \
+  --end-toplevel-options "$@"
