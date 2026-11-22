@@ -5,8 +5,8 @@
 An agent that lives in a Common Lisp image, powered by Claude through
 Claude Code. Not affiliated with Anthropic.
 
-> Status: just started. Nothing here runs yet; the plan below is what is
-> being built.
+> Status: early. The engine runs: a Lisp image talks to Claude, and Claude
+> evaluates Lisp in that image. Generations and the interface come next.
 
 ## The idea
 
@@ -32,6 +32,64 @@ supervisor — without stopping the conversation.
 
 - SBCL on macOS or Linux.
 - The Claude Code CLI (`claude`), signed in.
+
+## Using it
+
+```sh
+scripts/bootstrap                 # SBCL 2.6.9 and qlot under .local/
+.local/bin/qlot exec sbcl
+```
+
+```lisp
+(asdf:load-system "circle")
+
+(defvar *claude* (circle:start-engine (circle:make-engine :model "haiku")))
+
+(circle:ask *claude* "Define a function SQUARE in this image with eval, then use it on 12.")
+;; => "SQUARE is defined; (square 12) is 144."
+
+(square 12)          ; the model defined it here, in CL-USER
+;; => 144
+
+(circle:engine-session-id *claude*)
+;; => "6b5c41c9-..."
+```
+
+- **`ask`** sends a message and waits for the turn to end, returning its
+  final text. `send-user-message` sends one without waiting;
+  `add-engine-handler` hears every message the engine emits, as JSON objects
+  (`json-get`, `message-type`, `message-text`).
+- **Tools.** The image serves its tools to the CLI in process, as an MCP
+  server of type `sdk` routed over the same stdio; nothing else is started.
+  `eval` is the first. Define more while the engine runs; it lists them again
+  before its next turn:
+
+  ```lisp
+  (circle:define-tool word-count ((text :string "The text to count."))
+    "Count the words in a text."
+    (length (uiop:split-string text)))
+  ```
+
+- **Permissions.** The CLI asks the image before a tool its own settings do
+  not allow. The default answer, `allow-own-tools`, allows the image's tools
+  and denies the rest with a reason; set `engine-permission-function` to
+  decide otherwise.
+- **Resuming.** `stop-engine` keeps the session id, and starting the engine
+  again continues the conversation; so does a new engine made with
+  `:resume` and that id, in another image.
+- The CLI runs as it would for you, with your settings; give it more
+  arguments with `:arguments`, such as `("--tools" "")` to offer the model
+  no tools but the image's.
+
+`examples/hello.lisp` asks one question and prints the answer.
+
+## Tests
+
+`scripts/test` runs the suite against a stand-in CLI (`test/fake-claude.lisp`)
+that speaks the same protocol, so it needs no model. `CIRCLE_TEST_CLAUDE=1`
+adds checks against the real CLI (with `CIRCLE_TEST_MODEL`, haiku by default):
+one turn, a turn that calls `eval`, a tool defined mid-conversation, and a
+resumed conversation.
 
 ## License
 
