@@ -44,6 +44,7 @@
    #:*claude-command*
    #:engine-command
    #:engine-model
+   #:engine-effort
    #:engine-arguments
    #:engine-directory
    #:engine-process

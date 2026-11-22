@@ -13,6 +13,8 @@ change the API.
   CLI as a child process over stream-json and answers its control requests.
 - Conversations resume: the session id survives `stop-engine`, and
   `:resume` continues one in a new engine.
+- `:model` and `:effort` choose the model and its effort level
+  (`--model`, `--effort`).
 - Permission questions go to a Lisp function; the default allows the
   image's own tools and denies the rest with a reason.
 

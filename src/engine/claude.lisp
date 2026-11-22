@@ -19,6 +19,8 @@ arguments.")
             :documentation "The program and its first arguments.")
    (model :initarg :model :initform nil :accessor engine-model
           :documentation "The model to ask for, or NIL for the CLI's default.")
+   (effort :initarg :effort :initform nil :accessor engine-effort
+           :documentation "The effort level to ask for, or NIL for the CLI's default.")
    (arguments :initarg :arguments :initform '() :accessor engine-arguments
               :documentation "More arguments for the CLI.")
    (directory :initarg :directory :initform nil :accessor engine-directory
@@ -41,13 +43,15 @@ process and speaks to it over stdio.
 
 Besides the initargs of ENGINE: :COMMAND, the program and its first
 arguments, *CLAUDE-COMMAND* by default; :MODEL, a model name or alias such as
-\"haiku\"; :ARGUMENTS, more arguments for the CLI, such as
+\"claude-opus-5-5\"; :EFFORT, an effort level such as \"high\"; :ARGUMENTS, more arguments for the CLI, such as
 (\"--tools\" \"\"); :DIRECTORY, the directory it runs in."))
 
 (setf (documentation 'engine-command 'function)
       "The program a CLAUDE-ENGINE runs, and its first arguments, as a list."
       (documentation 'engine-model 'function)
       "The model a CLAUDE-ENGINE asks for, or NIL for the CLI's default."
+      (documentation 'engine-effort 'function)
+      "The effort level a CLAUDE-ENGINE asks for, or NIL for the CLI's default."
       (documentation 'engine-arguments 'function)
       "More arguments a CLAUDE-ENGINE gives the CLI."
       (documentation 'engine-directory 'function)
@@ -68,6 +72,7 @@ arguments, *CLAUDE-COMMAND* by default; :MODEL, a model name or alias such as
                 ;; Permission questions come as control requests on stdout.
                 "--permission-prompt-tool" "stdio")
           (when (engine-model engine) (list "--model" (engine-model engine)))
+          (when (engine-effort engine) (list "--effort" (engine-effort engine)))
           (when (engine-session-id engine) (list "--resume" (engine-session-id engine)))
           (when (engine-mcp-servers engine)
             (list "--mcp-config"

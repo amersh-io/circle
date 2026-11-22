@@ -5,5 +5,5 @@
 
 (in-package #:cl-user)
 
-(circle:with-engine (engine (circle:make-engine :model "haiku"))
+(circle:with-engine (engine (circle:make-engine :model "claude-opus-5-5" :effort "high"))
   (format t "~A~%" (circle:ask engine "What is the sum of the squares of 3 and 4?")))

@@ -124,9 +124,10 @@ without documentation."
                 (multiple-value-bind (decision reason) (allow-own-tools "Bash" (json-object))
                   (and (eq :deny decision) (says reason "permission function"))))))
   (check "the command line resumes a conversation and offers the image's server in process"
-         (let ((line (engine-command-line (make-engine :resume "abc" :model "haiku"))))
+         (let ((line (engine-command-line (make-engine :resume "abc" :model "claude-opus-5-5" :effort "high"))))
            (and (equal "abc" (second (member "--resume" line :test #'equal)))
-                (equal "haiku" (second (member "--model" line :test #'equal)))
+                (equal "claude-opus-5-5" (second (member "--model" line :test #'equal)))
+                (equal "high" (second (member "--effort" line :test #'equal)))
                 (says (second (member "--mcp-config" line :test #'equal))
                       "{\"mcpServers\":{\"lisp\":{\"type\":\"sdk\",\"name\":\"lisp\"}}}"))))
   (dolist (package '(:circle/engine :circle/tools :circle))

@@ -43,7 +43,7 @@ scripts/bootstrap                 # SBCL 2.6.9 and qlot under .local/
 ```lisp
 (asdf:load-system "circle")
 
-(defvar *claude* (circle:start-engine (circle:make-engine :model "haiku")))
+(defvar *claude* (circle:start-engine (circle:make-engine :model "claude-opus-5-5" :effort "high")))
 
 (circle:ask *claude* "Define a function SQUARE in this image with eval, then use it on 12.")
 ;; => "SQUARE is defined; (square 12) is 144."
@@ -87,7 +87,8 @@ scripts/bootstrap                 # SBCL 2.6.9 and qlot under .local/
 
 `scripts/test` runs the suite against a stand-in CLI (`test/fake-claude.lisp`)
 that speaks the same protocol, so it needs no model. `CIRCLE_TEST_CLAUDE=1`
-adds checks against the real CLI (with `CIRCLE_TEST_MODEL`, haiku by default):
+adds checks against the real CLI (`CIRCLE_TEST_MODEL` and `CIRCLE_TEST_EFFORT`, `claude-opus-5-5` and `high`
+by default):
 one turn, a turn that calls `eval`, a tool defined mid-conversation, and a
 resumed conversation.
 

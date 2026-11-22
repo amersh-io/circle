@@ -1,6 +1,7 @@
 ;;;; The engine against the real Claude Code CLI. These run only with
 ;;;; CIRCLE_TEST_CLAUDE=1, since they need the CLI installed and signed in
-;;;; and cost a little. CIRCLE_TEST_MODEL picks the model (haiku by default).
+;;;; and cost a little. CIRCLE_TEST_MODEL and CIRCLE_TEST_EFFORT pick the model
+;;;; and effort (claude-opus-5-5 and high by default).
 
 (in-package #:circle/test)
 
@@ -10,8 +11,9 @@
   (when (uiop:getenv "CIRCLE_TEST_CLAUDE")
     (let* ((directory (uiop:ensure-directory-pathname
                        (merge-pathnames "claude/" *fake-state*)))
-           (model (or (uiop:getenv "CIRCLE_TEST_MODEL") "haiku"))
-           (engine (make-engine :model model :directory (ensure-directories-exist directory)))
+           (model (or (uiop:getenv "CIRCLE_TEST_MODEL") "claude-opus-5-5"))
+           (effort (or (uiop:getenv "CIRCLE_TEST_EFFORT") "high"))
+           (engine (make-engine :model model :effort effort :directory (ensure-directories-exist directory)))
            (secret (random 1000000)))
       (setf cl-user::*circle-claude-secret* secret)
       (unwind-protect
@@ -37,7 +39,7 @@
              (check "claude: after the engine restarts, the same conversation resumes"
                     (let ((id (engine-session-id engine)))
                       (stop-engine engine)
-                      (with-engine (again (make-engine :model model :resume id :directory directory))
+                      (with-engine (again (make-engine :model model :effort effort :resume id :directory directory))
                         (and (says (ask again "What number did you reply with when you read the variable? Reply with only the number."
                                         :timeout 180)
                                    (princ-to-string secret))
