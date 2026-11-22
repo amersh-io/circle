@@ -43,6 +43,22 @@ change the API.
   newest at once on `:restart`.
 - The freeze and the supervisor modelled in Quint (`spec/`), with a CI job.
 
+### Interface
+
+- `circle/interface`, the image's side of a window, which loads no window
+  code: the view `circle`, a chat over the conversation, sent to a shell
+  with `cl-proteus/client`; `start-interface` keeps the image connected,
+  `interface-send`, and a transcript built from the engine's messages
+  (`message-entries`, `transcript-entries`), kept in a file across images.
+- Permission cards: a tool other than the image's own is asked about in the
+  window (`interface-permission`), denied after `*permission-timeout*`.
+- `interface-file` and its `setf`: the model changes its own window through
+  `eval`, and `keep` carries the change into the next generation.
+- `circle/shell` (macOS), the process that owns the window, and
+  `scripts/circle-shell`; `scripts/circle --window` or `--shell SOCKET`
+  starts it when nothing answers and gives every generation its socket.
+- Depends on cl-proteus 0.1.0 and cl-iris 0.2.0.
+
 ### Around the code
 
 - A stand-in CLI for the tests, and opt-in checks against the real one.

@@ -118,6 +118,48 @@ the running image is not forked; [spec/](spec) models the freeze and the
 supervisor in Quint. `examples/generations.lisp` builds generation 0 and runs
 it once.
 
+## Interface
+
+On macOS the conversation can have a window, which the agent changes while
+it runs:
+
+```sh
+scripts/circle ~/agents/notes/ --window
+```
+
+- The window belongs to a shell, a process of its own built on
+  [cl-proteus](https://github.com/amersh-io/cl-proteus) and
+  [cl-iris](https://github.com/amersh-io/cl-iris) (`scripts/circle-shell`).
+  The supervisor starts it when nothing answers on `DIRECTORY/shell.sock`
+  (`--shell SOCKET` names another socket) and leaves it running; every
+  generation connects to it, so the window stays through restarts and new
+  generations.
+- The agent's image loads only `cl-proteus/client`: no window code, nothing
+  that stops it from saving a generation. It owns the page the window shows,
+  the view `circle` -- a chat over the conversation -- and the commands that
+  page calls, and sends both to the shell.
+- What you type in the window, or in the terminal, goes to the model; its
+  answers, its tool calls (folded, with their results) and the end of each
+  turn show there. A tool other than the image's own is asked about on a card
+  with Allow and Deny; nobody answering within `*permission-timeout*` seconds
+  denies it. The transcript is kept in `DIRECTORY/transcript.jsonl`, so a new
+  generation's window shows the conversation so far.
+- The model changes its window through `eval`, as that tool's description
+  tells it: `(setf (circle:interface-file "ext.js") "...")` replaces a file of
+  the page (`ext.js` and `ext.css` load after the chat and start empty;
+  `window.circle.send(text)` there sends text as if typed), and
+  `cl-proteus/core:define-command` defines what the page can call. The page
+  loads again at once; with `keep` set to true the change lasts into the next
+  generation.
+
+```lisp
+;; In the image, by hand or by the model through eval with keep true:
+(setf (circle:interface-file "ext.js")
+      "document.body.insertAdjacentHTML('beforeend', '<p>Hello from the image.</p>')")
+```
+
+`examples/window.lisp` shows a window over an engine without generations.
+
 ## Tests
 
 `scripts/test` runs the suite against a stand-in CLI (`test/fake-claude.lisp`)
@@ -125,8 +167,12 @@ that speaks the same protocol, so it needs no model. `CIRCLE_TEST_CLAUDE=1`
 adds checks against the real CLI (`CIRCLE_TEST_MODEL` and `CIRCLE_TEST_EFFORT`, `claude-opus-5-5` and `high`
 by default):
 one turn, a turn that calls `eval`, a tool defined mid-conversation, a
-resumed conversation, and a generation the model freezes and the supervisor
-starts. `scripts/check-spec` runs the Quint model's tests.
+resumed conversation, a generation the model freezes and the supervisor
+starts, and, on macOS, a button the model adds to its own window that lasts
+into the next generation. On macOS the suite also runs the window: a shell
+in the test process, the agent as a supervised generation. Its windows are
+transparent and take no focus; `CIRCLE_TEST_VISIBLE=1` shows them.
+`scripts/check-spec` runs the Quint model's tests.
 
 ## License
 

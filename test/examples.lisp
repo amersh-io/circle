@@ -26,4 +26,9 @@
          (multiple-value-bind (output code) (run-example "generations")
            (and (eql 0 code)
                 (says output "circle: generation 0 ready")
-                (says output "echo: Say hello in five words.")))))
+                (says output "echo: Say hello in five words."))))
+  (check "examples/window.lisp shows a conversation's transcript, with or without a window"
+         (multiple-value-bind (output code) (run-example "window")
+           (and (eql 0 code)
+                (says output "user: What is the sum of the squares of 3 and 4?")
+                (says output "assistant: echo: What is the sum of the squares of 3 and 4?")))))
