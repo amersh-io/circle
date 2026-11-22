@@ -28,6 +28,8 @@
    #:write-session-id
    ;; Supervising
    #:supervise
+   #:socket-answers-p
+   #:*shell-start-timeout*
    #:+exit-restart+
    #:*first-backoff*
    #:*most-backoff*

@@ -7,8 +7,9 @@ on:
 
 jobs:
   test:
-    # circle needs no window system: it runs on Linux and on Apple silicon,
-    # the platforms scripts/bootstrap pins. CI uses the stand-in CLI.
+    # circle's image needs no window system: it runs on Linux and on Apple
+    # silicon, the platforms scripts/bootstrap pins; on macOS the suite also
+    # runs the window. CI uses the stand-in CLI.
     strategy:
       fail-fast: false
       matrix:

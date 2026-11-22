@@ -9,7 +9,7 @@
 ;;;; replay made, never the running image's other state.
 
 (defpackage #:circle/generation
-  (:use #:cl #:circle/engine #:circle/tools #:circle/supervisor)
+  (:use #:cl #:circle/engine #:circle/tools #:circle/interface #:circle/supervisor)
   (:export
    ;; Changes
    #:note-change

@@ -69,7 +69,16 @@ far, the error and the innermost frames of its backtrace."
   "Evaluate Common Lisp forms in the running SBCL image this conversation
 lives in, and answer with what they printed and the values of the last one.
 Definitions stay in the image: a function defined here can be called by the
-next eval. An error is answered with its backtrace."
+next eval. An error is answered with its backtrace.
+
+When this image shows a window (circle:interface-connected-p is true), you
+can change that window: it shows the page circle:*interface-view*, whose
+files (circle:interface-files) you read with circle:interface-file and set
+with (setf (circle:interface-file \"ext.js\") \"...\"); ext.js and ext.css
+load after the chat and start empty, and window.circle.send(text) there
+sends text as if typed. Functions the page calls with proteus.invoke are
+defined with cl-proteus/core:define-command. Set keep to true for such a
+change to last into the next generation."
   (let* ((package (or package *eval-package*))
          (answer (eval-forms code :package package)))
     (cond ((not keep) answer)

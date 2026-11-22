@@ -101,10 +101,26 @@
   (and (>= (length text) (length prefix)) (string= prefix text :end2 (length prefix))))
 
 (defun call (tool arguments)
-  "Call the image's TOOL; its text and whether it is an error."
-  (let ((result (mcp (first *servers*) "tools/call" (obj "name" tool "arguments" arguments))))
-    (values (get-in result "result" "content" 0 "text")
-            (get-in result "result" "isError"))))
+  "Call the image's TOOL; its text and whether it is an error. As the CLI
+does, the call is reported first as an assistant message with a tool_use
+block, and its answer then as a user message with a tool_result block."
+  (let ((id (format nil "toolu_fake_~D" (incf *counter*))))
+    (emit (obj "type" "assistant" "session_id" *session-id*
+               "message" (obj "role" "assistant"
+                              "content" (vector (obj "type" "tool_use" "id" id
+                                                     "name" (format nil "mcp__~A__~A"
+                                                                    (first *servers*) tool)
+                                                     "input" arguments)))))
+    (let* ((result (mcp (first *servers*) "tools/call" (obj "name" tool "arguments" arguments)))
+           (text (get-in result "result" "content" 0 "text"))
+           (errorp (get-in result "result" "isError")))
+      (emit (obj "type" "user" "session_id" *session-id*
+                 "message" (obj "role" "user"
+                                "content" (vector (obj "type" "tool_result" "tool_use_id" id
+                                                       "content" (vector (obj "type" "text"
+                                                                              "text" text))
+                                                       "is_error" errorp)))))
+      (values text errorp))))
 
 (defun turn (text)
   "The answer to TEXT and whether it is an error."

@@ -103,7 +103,8 @@ every check; if all pass, print REPLAY-OK and save the image to OUTPUT."
               (replay journal (argument arguments "--circle-save"))
               (multiple-value-bind (directory number) (image-place)
                 (sb-ext:exit :code (run-agent :directory directory :generation number
-                                              :ready-file (argument arguments "--circle-ready"))))))
+                                              :ready-file (argument arguments "--circle-ready")
+                                              :shell (argument arguments "--circle-shell"))))))
       (sb-sys:interactive-interrupt ()
         (sb-ext:exit :code 130 :abort t))
       (serious-condition (condition)

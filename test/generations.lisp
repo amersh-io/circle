@@ -84,9 +84,11 @@ start-failed mark if FAILED."
    (lock :initform (sb-thread:make-mutex) :reader supervised-lock)
    (reader :initform nil :accessor supervised-reader)))
 
-(defun start-supervised (directory)
-  "Run scripts/circle on DIRECTORY with pipes to its streams."
-  (let* ((process (uiop:launch-program (list (root "scripts/circle") (uiop:native-namestring directory))
+(defun start-supervised (directory &rest arguments)
+  "Run scripts/circle on DIRECTORY, with ARGUMENTS after it, with pipes to
+its streams."
+  (let* ((process (uiop:launch-program (list* (root "scripts/circle") (uiop:native-namestring directory)
+                                              arguments)
                                        :input :stream :output :stream :error-output :output))
          (supervised (make-instance 'supervised :process process)))
     (setf (supervised-reader supervised)

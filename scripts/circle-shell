@@ -1,0 +1,24 @@
+#!/bin/sh
+# Run the agent's window (macOS) with the toolchain installed by
+# scripts/bootstrap, until the window is closed:
+#
+#   scripts/circle-shell SOCKET
+#
+# The agent's image connects to SOCKET and the window shows its page.
+# scripts/circle --window starts this when no shell answers on its socket.
+set -eu
+
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+export PATH="$ROOT/.local/bin:$PATH"
+
+if [ $# -ne 1 ]; then
+  sed -n '2,8p' "$0" >&2
+  exit 2
+fi
+
+exec sbcl --noinform --non-interactive --no-userinit \
+  --load "$ROOT/.qlot/setup.lisp" \
+  --eval "(asdf:load-asd (truename \"$ROOT/circle.asd\"))" \
+  --eval '(asdf:load-system "circle/shell")' \
+  --eval '(sb-ext:exit :code (circle/shell::command-line (rest sb-ext:*posix-argv*)))' \
+  --end-toplevel-options "$@"

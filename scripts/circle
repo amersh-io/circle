@@ -2,16 +2,21 @@
 # Start the newest generation that can be started and keep one running,
 # with the toolchain installed by scripts/bootstrap:
 #
-#   scripts/circle [DIRECTORY] [-- ARGUMENTS FOR EACH GENERATION]
+#   scripts/circle [DIRECTORY] [--window | --shell SOCKET] [-- ARGUMENTS FOR EACH GENERATION]
 #
 # DIRECTORY holds the generations (circle/ under $XDG_DATA_HOME, else
 # ~/.local/share, if not given); build generation 0 there first with
 # circle:make-first-generation. The supervisor runs from this checkout's
 # source, never from a generation.
+#
+# --window shows the conversation in a window (macOS): the supervisor starts
+# scripts/circle-shell on DIRECTORY/shell.sock if nothing answers there, and
+# every generation connects to it. --shell SOCKET does the same on SOCKET.
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 export PATH="$ROOT/.local/bin:$PATH"
+export CIRCLE_SHELL_COMMAND="$ROOT/scripts/circle-shell"
 
 exec sbcl --noinform --non-interactive --no-userinit \
   --load "$ROOT/.qlot/setup.lisp" \

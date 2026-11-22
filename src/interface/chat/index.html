@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>circle</title>
+<link rel="stylesheet" href="chat.css">
+<link rel="stylesheet" href="ext.css">
+</head>
+<body>
+<header>
+  <span class="name">circle</span>
+  <span id="status" class="status offline">waiting for the image</span>
+</header>
+<main id="transcript" aria-live="polite"></main>
+<form id="composer">
+  <textarea id="input" rows="2" placeholder="Say something to the agent. Enter sends, Shift+Enter starts a new line."></textarea>
+  <button id="send" type="submit">Send</button>
+</form>
+<script src="chat.js"></script>
+<script src="ext.js"></script>
+</body>
+</html>

@@ -1,11 +1,13 @@
 ;;;; circle -- Claude In a Running Common Lisp Environment.
 ;;;;
-;;;; The umbrella package: the engine protocol, the image's tools, generations
-;;;; and the supervisor, and MAKE-ENGINE, which puts the first two together.
+;;;; The umbrella package: the engine protocol, the image's tools, its window,
+;;;; generations and the supervisor, and MAKE-ENGINE, which puts the first two
+;;;; together.
 
 (uiop:define-package #:circle
   (:use #:cl)
-  (:use-reexport #:circle/engine #:circle/tools #:circle/supervisor #:circle/generation)
+  (:use-reexport #:circle/engine #:circle/tools #:circle/interface #:circle/supervisor
+                 #:circle/generation)
   (:export #:make-engine))
 
 (in-package #:circle)
