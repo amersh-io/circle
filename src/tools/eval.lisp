@@ -5,6 +5,11 @@
 (defvar *eval-package* "CL-USER"
   "The package the eval tool reads in when the model names none.")
 
+(defvar *keep-function* nil
+  "Called with the code and the package name of a successful eval the model
+asked to keep, or NIL where nothing is kept. circle/generation sets it to
+note the code as a change for the next generation.")
+
 (defvar *eval-output-limit* 50000
   "The most characters of printed output and values the eval tool answers
 with; the rest is cut and said to be.")
@@ -59,9 +64,16 @@ far, the error and the innermost frames of its backtrace."
 
 (define-tool eval ((code :string "Common Lisp forms to read and evaluate, in order.")
                    &optional
-                   (package :string "The package to read them in; CL-USER if left out."))
+                   (package :string "The package to read them in; CL-USER if left out.")
+                   (keep :boolean "True if these forms change the image in a way to keep: once they have run without error they are noted as a change, which freeze_generation replays into the next generation. Leave it out for anything else."))
   "Evaluate Common Lisp forms in the running SBCL image this conversation
 lives in, and answer with what they printed and the values of the last one.
 Definitions stay in the image: a function defined here can be called by the
 next eval. An error is answered with its backtrace."
-  (eval-forms code :package (or package *eval-package*)))
+  (let* ((package (or package *eval-package*))
+         (answer (eval-forms code :package package)))
+    (cond ((not keep) answer)
+          (*keep-function*
+           (funcall *keep-function* code package)
+           (format nil "~A~%;; kept as a change for the next generation" answer))
+          (t (format nil "~A~%;; not kept: this image keeps no generations" answer)))))

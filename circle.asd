@@ -5,7 +5,7 @@
   :license "Apache-2.0"
   :version "0.0.1"
   :homepage "https://github.com/amersh-io/circle"
-  :depends-on ("circle/engine" "circle/tools")
+  :depends-on ("circle/engine" "circle/tools" "circle/supervisor" "circle/generation")
   :pathname "src/"
   :components ((:file "circle"))
   :in-order-to ((test-op (test-op "circle/test"))))
@@ -31,6 +31,28 @@
                (:file "server")
                (:file "eval")))
 
+(defsystem "circle/supervisor"
+  :description "Generations on disk, and the supervisor that starts the newest good one."
+  :license "Apache-2.0"
+  :depends-on ("uiop" "sb-posix")
+  :pathname "src/supervisor/"
+  :serial t
+  :components ((:file "package")
+               (:file "store")
+               (:file "supervise")))
+
+(defsystem "circle/generation"
+  :description "Changes the image keeps, replayed and frozen into generations."
+  :license "Apache-2.0"
+  :depends-on ("circle/engine" "circle/tools" "circle/supervisor" "sb-posix")
+  :pathname "src/generation/"
+  :serial t
+  :components ((:file "package")
+               (:file "journal")
+               (:file "image")
+               (:file "freeze")
+               (:file "agent")))
+
 (defsystem "circle/test"
   :license "Apache-2.0"
   :depends-on ("circle")
@@ -39,6 +61,7 @@
   :components ((:file "package")
                (:file "tools")
                (:file "engine")
+               (:file "generations")
                (:file "claude")
                (:file "examples")
                (:file "run"))

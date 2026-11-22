@@ -22,4 +22,5 @@
            #:tool-error
            #:*mcp-protocol-version*
            #:eval-forms
+           #:*keep-function*
            #:*eval-package*))
