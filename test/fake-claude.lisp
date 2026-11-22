@@ -8,6 +8,8 @@
 ;;;; --resume continues one. What a user message starts with picks the turn:
 ;;;;
 ;;;;   eval: CODE      call the image's eval tool with CODE; answer its text
+;;;;   keep: CODE      the same, asking eval to keep CODE as a change
+;;;;   freeze          call the image's freeze_generation tool
 ;;;;   tools           list the image's tools; answer their names
 ;;;;   use bash        ask permission for Bash; answer allowed or denied
 ;;;;   history         answer the earlier messages of the conversation
@@ -98,13 +100,17 @@
 (defun prefixp (prefix text)
   (and (>= (length text) (length prefix)) (string= prefix text :end2 (length prefix))))
 
+(defun call (tool arguments)
+  "Call the image's TOOL; its text and whether it is an error."
+  (let ((result (mcp (first *servers*) "tools/call" (obj "name" tool "arguments" arguments))))
+    (values (get-in result "result" "content" 0 "text")
+            (get-in result "result" "isError"))))
+
 (defun turn (text)
   "The answer to TEXT and whether it is an error."
-  (cond ((prefixp "eval: " text)
-         (let ((result (mcp (first *servers*) "tools/call"
-                            (obj "name" "eval" "arguments" (obj "code" (subseq text 6))))))
-           (values (get-in result "result" "content" 0 "text")
-                   (get-in result "result" "isError"))))
+  (cond ((prefixp "eval: " text) (call "eval" (obj "code" (subseq text 6))))
+        ((prefixp "keep: " text) (call "eval" (obj "code" (subseq text 6) "keep" t)))
+        ((string= text "freeze") (call "freeze_generation" (obj)))
         ((string= text "tools")
          (let ((tools (get-in (mcp (first *servers*) "tools/list") "result" "tools")))
            (format nil "~{~A~^ ~}" (map 'list (lambda (tool) (gethash "name" tool)) tools))))

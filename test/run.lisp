@@ -12,6 +12,7 @@
            (progn
              (tool-checks)
              (engine-checks)
+             (generations-suite)
              (example-checks)
              (claude-checks))
         (uiop:delete-directory-tree *fake-state* :validate t :if-does-not-exist :ignore))))

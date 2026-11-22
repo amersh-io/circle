@@ -21,4 +21,9 @@
   (check "examples/hello.lisp asks a question and prints the answer"
          (multiple-value-bind (output code) (run-example "hello")
            (and (eql 0 code)
-                (says output "echo: What is the sum of the squares of 3 and 4?")))))
+                (says output "echo: What is the sum of the squares of 3 and 4?"))))
+  (check "examples/generations.lisp builds generation 0 and runs it once"
+         (multiple-value-bind (output code) (run-example "generations")
+           (and (eql 0 code)
+                (says output "circle: generation 0 ready")
+                (says output "echo: Say hello in five words.")))))

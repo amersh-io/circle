@@ -44,4 +44,35 @@
                                         :timeout 180)
                                    (princ-to-string secret))
                              (equal id (engine-session-id again)))))))
-        (stop-engine engine)))))
+        (stop-engine engine))
+      (claude-generation-checks model effort directory))))
+
+(defun claude-generation-checks (model effort directory)
+  "The model keeps a change, freezes a generation, and the supervisor starts
+it; the resumed conversation uses the change."
+  (let ((generations (scratch-directory "claude-generations/"))
+        (addend (+ 1000 (random 9000)))
+        (supervised nil))
+    (make-first-generation :directory generations
+                           :engine-options (list :model model :effort effort
+                                                 :directory (uiop:native-namestring directory)))
+    (unwind-protect
+         (progn
+           (setf supervised (start-supervised generations))
+           (check "claude: the model keeps a change and freezes a generation"
+                  (and (wait-for-line supervised "generation 0 ready" :timeout 180)
+                       (progn
+                         (say-to supervised
+                                 (format nil "Call the mcp__lisp__eval tool with keep set to true to evaluate (defun cl-user::circle-plus-secret (x) (+ x ~D)). Then call the mcp__lisp__freeze_generation tool. Reply with what freeze_generation answered."
+                                         addend))
+                         ;; Read once that turn is over, :restart starts the newest generation.
+                         (exchange supervised ":restart" "generation 1 ready" :timeout 600))
+                       (eq :ok (manifest-get 1 :replay generations))))
+           (check "claude: the next generation has the change, in the same conversation"
+                  (and (exchange supervised
+                                 "Call the mcp__lisp__eval tool to evaluate (cl-user::circle-plus-secret 1) and reply with only the number it returns."
+                                 (princ-to-string (1+ addend)) :timeout 300)
+                       (exchange supervised
+                                 "What number did the function you defined before add to its argument? Reply with only the number."
+                                 (princ-to-string addend) :timeout 300))))
+      (when supervised (finish-supervised supervised)))))

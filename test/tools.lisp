@@ -130,7 +130,7 @@ without documentation."
                 (equal "high" (second (member "--effort" line :test #'equal)))
                 (says (second (member "--mcp-config" line :test #'equal))
                       "{\"mcpServers\":{\"lisp\":{\"type\":\"sdk\",\"name\":\"lisp\"}}}"))))
-  (dolist (package '(:circle/engine :circle/tools :circle))
+  (dolist (package '(:circle/engine :circle/tools :circle/supervisor :circle/generation :circle))
     (let ((missing (undocumented-symbols package)))
       (check (format nil "every external symbol of ~(~A~) is documented" package)
              (or (null missing)
