@@ -1,0 +1,15 @@
+#!/bin/sh
+# Run the test suite with the toolchain installed by scripts/bootstrap.
+# Exits non-zero when a test fails. CIRCLE_TEST_ONLY=<text> runs only the
+# checks whose names contain <text>; CIRCLE_TEST_CLAUDE=1 adds the checks
+# that talk to the real Claude Code CLI, which must be installed and signed in.
+set -eu
+
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+export PATH="$ROOT/.local/bin:$PATH"
+cd "$ROOT"
+
+qlot exec sbcl --non-interactive \
+  --eval '(asdf:load-asd (truename "circle.asd"))' \
+  --eval '(asdf:test-system "circle")' \
+  --eval '(format t "~&ALL-TESTS-PASSED~%")'
